@@ -6,6 +6,8 @@ A small userscript for download photos on Twitter easily.
 
 For running this userscript, you should have a userscript manager, e.g. [Tampermonkey](https://www.tampermonkey.net/).
 
+To install the userscript, see the [twimg_downloader.user.js](./twimg_downloader.user.js) and open raw URL by click the *Raw* button at the top of the file. The userscript manager will ask if you would like to install it (or add new script in the manager and enter the source).
+
 ## Usage
 
 Click 'Share' button of tweet with photos, 'Download Image' button will be shown on menu.
