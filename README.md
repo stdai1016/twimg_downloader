@@ -10,12 +10,12 @@ To install the userscript, see the [twimg_downloader.user.js](./twimg_downloader
 
 ## Usage
 
-Click 'Share' button of tweet with photos, 'Download Image' button will be shown on menu.
+Click *Share* button of tweet with photos, *Download Image* button for download file will be shown on menu.
 ![share menu](./share_menu.jpg)
 
 ## Configuration
 
-You could set file zipping and format of filename in the 'Storage' tab of the script.
+You could set file zipping and format of filename in the *Storage* tab of the script.
 ![storage](./storage.jpg)
 
 |Field| Type |Description                   |
@@ -28,7 +28,7 @@ You could set file zipping and format of filename in the 'Storage' tab of the sc
 
 ### Format of filename
 
-Available format names are:
+Available placeholders are:
 
 * `{base}` basename of url
 * `{tweet}` tweet id
@@ -37,7 +37,7 @@ Available format names are:
 
 ## Issues
 
-* You would get error files in other tweet after you clicked 'Share' button twice in short time.
+* You would get error files in other tweet after you clicked *Share* button twice in short time.
 * You would get error file in photo sliding mode (`https://twitter.com/*/status/*/photo/*`) after slide to other photos.
 * The menu in sliding mode will be extended beyond the window.
 
