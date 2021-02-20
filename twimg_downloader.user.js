@@ -1,6 +1,8 @@
 // ==UserScript==
 // @name         twimg Downloader
+// @name:zh-TW   twimg Downloader
 // @description  A small tool for download photos easily
+// @description:zh-tw 方便下載推特圖片的小工具
 // @match        https://twitter.com/*
 // @match        https://mobile.twitter.com/*
 // @version      0.6.11
