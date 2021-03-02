@@ -5,7 +5,7 @@
 // @description:zh-tw 方便下載推特圖片的小工具
 // @match        https://twitter.com/*
 // @match        https://mobile.twitter.com/*
-// @version      0.6.12
+// @version      0.6.13a
 // @license      MIT
 // @require      https://code.jquery.com/jquery-3.5.1.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js
@@ -191,57 +191,73 @@
   /* tweet */
   function modifyTweet ($tweet) {
     $tweet = $tweet.parent();
-    const $btnShare = $tweet.find(SEL_BTN);
-    $btnShare.on('click', function () {
-      console.debug('click');
-      const tid = findTweetId($tweet);
-      const nodes = [];
-      findPhotoNodes($tweet).forEach(a => {
-        if (a.href.match(FMT_PHOTO)[2] === tid) nodes.push(a);
-      });
-      console.info('Tweet ' + tid + ': ' + nodes.length);
-      if (nodes.length === 0) return;
-
-      const $menuitem = $(MENU_I_DL);
-      $menuitem.on('click', e => {
-        e.preventDefault();
-        setTimeout(downloadImages, 9, nodes);
-      });
-      insertMenuitem($menuitem);
+    const tid = findTweetId($tweet);
+    const nodes = [];
+    findPhotoNodes($tweet).forEach(a => {
+      if (a.href.match(FMT_PHOTO)[2] === tid) nodes.push(a);
     });
+    console.info('Tweet ' + tid + ': ' + nodes.length);
+    if (nodes.length) {
+      const $btnShare = $tweet.find(SEL_BTN);
+      $btnShare.on('click', function () {
+        getMenu().then(m => {
+          const $menuitem = $(MENU_I_DL);
+          $menuitem.on('click', e => {
+            e.preventDefault();
+            setTimeout(downloadImages, 9, nodes);
+          });
+          insertMenuitem($menuitem, m);
+        });
+      });
+    }
   }
   /* photo dialog */
   function modifyDialog ($dialog) {
     const $btnShare = $dialog.find(SEL_BTN);
     if (!$btnShare.length) { setTimeout(modifyDialog, 72, $dialog); return; }
     $btnShare.on('click', function () {
-      console.debug('click');
       const m = window.location.href.match(FMT_PHOTO);
       console.info('Tweet ' + m[2] + '-' + m[3]);
       const im = $dialog.find('img')[parseInt(m[3]) - 1];
       const a = $('<a></a>').attr('href', window.location.href).append(im);
-      const $menuitem = $(MENU_I_DL);
-      $menuitem.on('click', e => {
-        e.preventDefault();
-        setTimeout(downloadImages, 9, [a[0]]);
+      getMenu().then(m => {
+        const $menuitem = $(MENU_I_DL);
+        $menuitem.on('click', e => {
+          e.preventDefault();
+          setTimeout(downloadImages, 9, [a[0]]);
+        });
+        insertMenuitem($menuitem, m);
       });
-      insertMenuitem($menuitem);
     });
   }
+
   /* menu */
-  const $menus_ = [];
-  function insertMenuitem ($menuitem) {
-    let $menu_ = $menus_.shift();
-    if ($menu_ === undefined ||
-      getComputedStyle($menu_[0]).visibility !== 'visible') {
-      setTimeout(insertMenuitem, 72, $menuitem);
-      return;
-    }
-    console.debug('insert menuitem');
+  function getMenu (timeout = 1000) {
+    return new Promise((resolve, reject) => {
+      const h = setTimeout(function () {
+        console.debug('[timeout] getMenu');
+        const m = document.body.querySelector('#layers [role=menu]');
+        if (m) resolve(m);
+        else reject(Error('timeout'));
+      }, timeout);
+      const menuMO = new MutationObserver(r => r.forEach(mu => {
+        const m = mu.target.querySelector('[role=menu]');
+        if (m) {
+          clearTimeout(h);
+          resolve(m);
+          menuMO.disconnect();
+        }
+      }));
+      menuMO.observe(document.querySelector('#layers'),
+        { childList: true, subtree: true });
+    });
+  }
+  function insertMenuitem ($menuitem, menu) {
+    console.debug('[called] insertMenuitem');
+    const $menu_ = $(menu);
     $menuitem.on('click', function (e) {
       e.preventDefault();
       $menu_.parent().children().first().click(); // click background
-      $menu_ = null;
     });
     const $menuitem0 = $menu_.find(SEL_MENU_I).first();
     $menuitem.attr('class', $menuitem0.attr('class')).removeClass('r-1cuuowz');
@@ -251,11 +267,6 @@
   /* mutations */
   function handleAddedNode (mutation) {
     if (mutation.addedNodes.length === 0) return;
-    // <div role="menu">
-    if (mutation.target.getAttribute('role') === 'menu') {
-      $menus_.push($(mutation.target));
-      console.debug('Added: menu');
-    }
     mutation.addedNodes.forEach(node => {
       // <div data-testid="tweet">
       $(node).find(SEL_TWEET).each(function () {
