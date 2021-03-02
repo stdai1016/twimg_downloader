@@ -5,7 +5,7 @@
 // @description:zh-tw 方便下載推特圖片的小工具
 // @match        https://twitter.com/*
 // @match        https://mobile.twitter.com/*
-// @version      0.6.13a
+// @version      0.6.13b
 // @license      MIT
 // @require      https://code.jquery.com/jquery-3.5.1.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js
@@ -200,14 +200,11 @@
     if (nodes.length) {
       const $btnShare = $tweet.find(SEL_BTN);
       $btnShare.on('click', function () {
-        getMenu().then(m => {
-          const $menuitem = $(MENU_I_DL);
-          $menuitem.on('click', e => {
-            e.preventDefault();
-            setTimeout(downloadImages, 9, nodes);
-          });
-          insertMenuitem($menuitem, m);
+        const $menuitem = $(MENU_I_DL).on('click', e => {
+          e.preventDefault();
+          setTimeout(downloadImages, 9, nodes);
         });
+        insertMenuitem($menuitem);
       });
     }
   }
@@ -220,18 +217,28 @@
       console.info('Tweet ' + m[2] + '-' + m[3]);
       const im = $dialog.find('img')[parseInt(m[3]) - 1];
       const a = $('<a></a>').attr('href', window.location.href).append(im);
-      getMenu().then(m => {
-        const $menuitem = $(MENU_I_DL);
-        $menuitem.on('click', e => {
-          e.preventDefault();
-          setTimeout(downloadImages, 9, [a[0]]);
-        });
-        insertMenuitem($menuitem, m);
+      const $menuitem = $(MENU_I_DL).on('click', e => {
+        e.preventDefault();
+        setTimeout(downloadImages, 9, [a[0]]);
       });
+      insertMenuitem($menuitem);
     });
   }
 
   /* menu */
+  function insertMenuitem ($menuitem) {
+    console.debug('[called] insertMenuitem');
+    getMenu().then(menu => {
+      const $menu_ = $(menu);
+      $menuitem.on('click', function (e) {
+        e.preventDefault();
+        $menu_.parent().children().first().click(); // click background
+      });
+      const $menuitem0 = $menu_.find(SEL_MENU_I).first();
+      $menuitem.attr('class', $menuitem0.attr('class')).removeClass('r-1cuuowz');
+      $menuitem0.before($menuitem);
+    });
+  }
   function getMenu (timeout = 1000) {
     return new Promise((resolve, reject) => {
       const h = setTimeout(function () {
@@ -251,17 +258,6 @@
       menuMO.observe(document.querySelector('#layers'),
         { childList: true, subtree: true });
     });
-  }
-  function insertMenuitem ($menuitem, menu) {
-    console.debug('[called] insertMenuitem');
-    const $menu_ = $(menu);
-    $menuitem.on('click', function (e) {
-      e.preventDefault();
-      $menu_.parent().children().first().click(); // click background
-    });
-    const $menuitem0 = $menu_.find(SEL_MENU_I).first();
-    $menuitem.attr('class', $menuitem0.attr('class')).removeClass('r-1cuuowz');
-    $menuitem0.before($menuitem);
   }
 
   /* mutations */
