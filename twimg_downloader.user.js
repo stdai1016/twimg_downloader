@@ -5,7 +5,7 @@
 // @description:zh-tw 方便下載推特圖片的小工具
 // @match        https://twitter.com/*
 // @match        https://mobile.twitter.com/*
-// @version      0.6.13b
+// @version      0.6.13
 // @license      MIT
 // @require      https://code.jquery.com/jquery-3.5.1.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js
@@ -202,12 +202,13 @@
       $btnShare.on('click', function () {
         const $menuitem = $(MENU_I_DL).on('click', e => {
           e.preventDefault();
-          setTimeout(downloadImages, 9, nodes);
+          downloadImages(nodes);
         });
         insertMenuitem($menuitem);
       });
     }
   }
+
   /* photo dialog */
   function modifyDialog ($dialog) {
     const $btnShare = $dialog.find(SEL_BTN);
@@ -219,7 +220,7 @@
       const a = $('<a></a>').attr('href', window.location.href).append(im);
       const $menuitem = $(MENU_I_DL).on('click', e => {
         e.preventDefault();
-        setTimeout(downloadImages, 9, [a[0]]);
+        downloadImages([a[0]]);
       });
       insertMenuitem($menuitem);
     });
@@ -229,12 +230,11 @@
   function insertMenuitem ($menuitem) {
     console.debug('[called] insertMenuitem');
     getMenu().then(menu => {
-      const $menu_ = $(menu);
       $menuitem.on('click', function (e) {
         e.preventDefault();
-        $menu_.parent().children().first().click(); // click background
+        menu.parentNode.childNodes[0].click(); // click background
       });
-      const $menuitem0 = $menu_.find(SEL_MENU_I).first();
+      const $menuitem0 = $(menu.querySelector(SEL_MENU_I));
       $menuitem.attr('class', $menuitem0.attr('class')).removeClass('r-1cuuowz');
       $menuitem0.before($menuitem);
     });
