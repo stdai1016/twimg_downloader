@@ -5,7 +5,7 @@
 // @description:zh-tw 方便下載推特圖片的小工具
 // @match        https://twitter.com/*
 // @match        https://mobile.twitter.com/*
-// @version      0.6.13
+// @version      0.6.14
 // @license      MIT
 // @require      https://code.jquery.com/jquery-3.5.1.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js
@@ -243,6 +243,7 @@
     return new Promise((resolve, reject) => {
       const h = setTimeout(function () {
         console.debug('[timeout] getMenu');
+        stop();
         const m = document.body.querySelector('#layers [role=menu]');
         if (m) resolve(m);
         else reject(Error('timeout'));
@@ -250,13 +251,16 @@
       const menuMO = new MutationObserver(r => r.forEach(mu => {
         const m = mu.target.querySelector('[role=menu]');
         if (m) {
-          clearTimeout(h);
+          stop();
           resolve(m);
-          menuMO.disconnect();
         }
       }));
       menuMO.observe(document.querySelector('#layers'),
         { childList: true, subtree: true });
+      function stop () {
+        clearTimeout(h);
+        menuMO.disconnect();
+      }
     });
   }
 
