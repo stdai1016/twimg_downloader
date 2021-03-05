@@ -39,7 +39,7 @@ Available placeholders are:
 
 * (fixed) ~~You would get error files in other tweet after you clicked *Share* button twice in short time.~~
 * You would get error file in photo sliding mode (`https://twitter.com/*/status/*/photo/*`) after slide to other photos.
-* The menu in sliding mode will be extended beyond the window.
+* (disappeared?) The menu in sliding mode will be extended beyond the window.
 
 ## TODO
 
