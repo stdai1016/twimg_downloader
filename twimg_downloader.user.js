@@ -5,7 +5,7 @@
 // @description:zh-tw 方便下載推特圖片的小工具
 // @match        https://twitter.com/*
 // @match        https://mobile.twitter.com/*
-// @version      0.6.14
+// @version      0.6.15
 // @license      MIT
 // @require      https://code.jquery.com/jquery-3.5.1.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js
@@ -55,7 +55,7 @@
   function getFileName (fmt, opt) {
     return fmt.replace(/{(\w+)}/g, function (m, w) {
       return opt[w] ? opt[w] : w;
-    });
+    }).replace(/[/|\\?"*:<>]/g, '_');
   }
 
   /* ======= ACTION ======= */
@@ -70,6 +70,8 @@
     return m ? m[1] + f[0] + m[2] + f[1] + 'orig' : '';
   }
   function getBasename (url) {
+    const m = url.match(FMT_MEDIA_MODERN) || url.match(FMT_MEDIA_LEGACY);
+    if (m) return m[1].split('/').pop();
     url = url.split('/').pop();
     const i = url.lastIndexOf('.');
     return i < 0 ? url : url.substr(0, i);
