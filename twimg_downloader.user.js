@@ -5,7 +5,7 @@
 // @description:zh-tw 方便下載推特圖片的小工具
 // @match        https://twitter.com/*
 // @match        https://mobile.twitter.com/*
-// @version      0.6.16b
+// @version      0.6.16
 // @license      MIT
 // @require      https://code.jquery.com/jquery-3.5.1.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js
@@ -223,8 +223,8 @@
         .querySelector('div[style^=background-image]')
         // eslint-disable-next-line no-useless-escape
         .style.backgroundImage.match(/url\(\"(.+)\"\)/)[1];
-      const im = $(`<img src="${url}">`)[0];
-      const a = $(`<a href=${window.location.href}></a>`).append(im)[0];
+      const img = $(`<img src="${url}">`);
+      const a = $(`<a href="${window.location.href}"></a>`).append(img)[0];
       const $menuitem = $(MENU_I_DL).on('click', e => {
         e.preventDefault();
         downloadImages([a]);
