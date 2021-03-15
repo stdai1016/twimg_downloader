@@ -37,9 +37,8 @@ Available placeholders are:
 
 ## Issues
 
-* (fixed) ~~You would get error files in other tweet after you clicked *Share* button twice in short time.~~
-* You would get error file in photo sliding mode (`https://twitter.com/*/status/*/photo/*`) after slide to other photos.
-* (disappeared?) The menu in sliding mode will be extended beyond the window.
+* (fixed) ~~You would get error file in photo sliding mode (`https://twitter.com/*/status/*/photo/*`) after slide to other photos.~~
+* Sometimes media in tweet which is opened in new tab cannot be detected (reload the page can solve it).
 
 ## TODO
 
