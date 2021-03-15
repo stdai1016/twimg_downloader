@@ -5,7 +5,7 @@
 // @description:zh-tw 方便下載推特圖片的小工具
 // @match        https://twitter.com/*
 // @match        https://mobile.twitter.com/*
-// @version      0.6.16a
+// @version      0.6.16b
 // @license      MIT
 // @require      https://code.jquery.com/jquery-3.5.1.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js
@@ -218,9 +218,10 @@
     $btnShare.on('click', function () {
       const m = window.location.href.match(FMT_PHOTO);
       console.info(`Tweet ${m[2]}-${m[3]}`);
-      const listitem = $dialog.find('li[role="listitem"]')[parseInt(m[3]) - 1];
-      const url = listitem.querySelector('div[style^=background-image]')
-      // eslint-disable-next-line no-useless-escape
+      const item = $dialog.find('li[role="listitem"]')[parseInt(m[3]) - 1];
+      const url = (item || $dialog[0])
+        .querySelector('div[style^=background-image]')
+        // eslint-disable-next-line no-useless-escape
         .style.backgroundImage.match(/url\(\"(.+)\"\)/)[1];
       const im = $(`<img src="${url}">`)[0];
       const a = $(`<a href=${window.location.href}></a>`).append(im)[0];
