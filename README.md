@@ -39,6 +39,7 @@ Available placeholders are:
 
 * (fixed) ~~You would get error file in photo sliding mode (`https://twitter.com/*/status/*/photo/*`) after slide to other photos.~~
 * Sometimes media in tweet which is opened in new tab cannot be detected (reload the page can solve it).
+* The tool gets detection fail on tweets which contain sensitive media.
 
 ## TODO
 
