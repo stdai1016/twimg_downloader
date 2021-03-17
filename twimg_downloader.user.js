@@ -5,7 +5,7 @@
 // @description:zh-tw 方便下載推特圖片的小工具
 // @match        https://twitter.com/*
 // @match        https://mobile.twitter.com/*
-// @version      0.6.16
+// @version      0.6.17a
 // @license      MIT
 // @require      https://code.jquery.com/jquery-3.5.1.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js
@@ -56,6 +56,24 @@
     return fmt.replace(/{(\w+)}/g, function (m, w) {
       return opt[w] ? opt[w] : w;
     }).replace(/[/|\\?"*:<>]/g, '_');
+  }
+
+  /* ======= utils ======= */
+  function getElementAsync (selectors, target, timeout = 100) {
+    return new Promise((resolve, reject) => {
+      const i = setTimeout(function () {
+        stop();
+        const el = target.querySelector(selectors);
+        if (el) resolve(el);
+        else reject(Error(`get "${selectors}" timeout`));
+      }, timeout);
+      const mo = new MutationObserver(r => r.forEach(mu => {
+        const el = mu.target.querySelector(selectors);
+        if (el) { stop(); resolve(el); }
+      }));
+      mo.observe(target, { childList: true, subtree: true });
+      function stop () { clearTimeout(i); mo.disconnect(); }
+    });
   }
 
   /* ======= ACTION ======= */
@@ -236,7 +254,8 @@
   /* menu */
   function insertMenuitem ($menuitem) {
     console.debug('[called] insertMenuitem');
-    getMenu().then(menu => {
+    const layers = document.querySelector('#layers');
+    getElementAsync('[role=menu]', layers, 1000).then(menu => {
       $menuitem.on('click', function (e) {
         e.preventDefault();
         menu.parentNode.childNodes[0].click(); // click background
@@ -246,51 +265,34 @@
       $menuitem0.before($menuitem);
     });
   }
-  function getMenu (timeout = 1000) {
-    return new Promise((resolve, reject) => {
-      const h = setTimeout(function () {
-        console.debug('[timeout] getMenu');
-        stop();
-        const m = document.body.querySelector('#layers [role=menu]');
-        if (m) resolve(m);
-        else reject(Error('timeout'));
-      }, timeout);
-      const menuMO = new MutationObserver(r => r.forEach(mu => {
-        const m = mu.target.querySelector('[role=menu]');
-        if (m) {
-          stop();
-          resolve(m);
-        }
-      }));
-      menuMO.observe(document.querySelector('#layers'),
-        { childList: true, subtree: true });
-      function stop () {
-        clearTimeout(h);
-        menuMO.disconnect();
-      }
-    });
-  }
 
   /* mutations */
-  function handleAddedNode (mutation) {
-    if (mutation.addedNodes.length === 0) return;
-    mutation.addedNodes.forEach(node => {
-      // <div data-testid="tweet">
-      $(node).find(SEL_TWEET).each(function () {
-        if ($(this).hasClass('dl-orig')) return;
-        $(this).addClass('dl-orig');
-        console.debug('Added: tweet');
-        setTimeout(modifyTweet, 72, $(this));
+  // <div data-testid="tweet">
+  getElementAsync('main', document.body).then(main => {
+    if (window.location.href.match(FMT_TWEET)) {
+      main.querySelectorAll(SEL_TWEET).forEach(tweet => {
+        tweet.classList.add('exist');
+        modifyTweet($(tweet));
       });
-      // <div role="dialog">
-      $(node).find(SEL_DIALOG).each(function () {
-        if ($(this).hasClass('dl-orig')) return;
-        $(this).addClass('dl-orig');
-        console.debug('Added: dialog');
-        setTimeout(modifyDialog, 72, $(this));
+    }
+    (new MutationObserver(r => r.forEach(mu => mu.addedNodes.forEach(node => {
+      node.querySelectorAll(SEL_TWEET).forEach(tweet => {
+        if (tweet.classList.contains('added')) return;
+        tweet.classList.add('added');
+        modifyTweet($(tweet));
       });
-    });
-  }
-  const mo = new MutationObserver(r => { r.forEach(handleAddedNode); });
-  mo.observe(document.body, { childList: true, subtree: true });
+    })))).observe(main, { childList: true, subtree: true });
+  });
+  // <div role="dialog">
+  getElementAsync('#layers', document.body, 500).then(layers => {
+    if (window.location.href.match(FMT_PHOTO)) {
+      modifyDialog($(layers.querySelector(SEL_DIALOG)));
+    }
+    (new MutationObserver(r => r.forEach(mu => mu.addedNodes.forEach(node => {
+      const dialog = node.querySelector(SEL_DIALOG);
+      if (!dialog || dialog.classList.contains('added')) return;
+      dialog.classList.add('added');
+      modifyDialog($(dialog));
+    })))).observe(layers, { childList: true, subtree: true });
+  });
 })();
