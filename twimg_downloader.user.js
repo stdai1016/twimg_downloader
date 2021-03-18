@@ -5,7 +5,7 @@
 // @description:zh-tw 方便下載推特圖片的小工具
 // @match        https://twitter.com/*
 // @match        https://mobile.twitter.com/*
-// @version      0.7.0
+// @version      0.7.1a
 // @license      MIT
 // @require      https://code.jquery.com/jquery-3.5.1.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js
@@ -76,9 +76,11 @@
   }
 
   /* ======= ACTION ======= */
-  const FMT_TWEET = /^https:\/\/(?:mobile.|)twitter\.com\/(\w+)\/status\/(\d+)/;
+  const FMT_TWEET =
+    /^https:\/\/(?:mobile\.|)twitter\.com\/(\w+)\/status\/(\d+)/;
   const FMT_PHOTO =
-    /^https:\/\/(?:mobile.|)twitter\.com\/(\w+)\/status\/(\d+)\/photo\/(\d)$/;
+    /^https:\/\/(?:mobile\.|)twitter\.com\/(\w+)\/status\/(\d+)\/photo\/(\d)$/;
+  const FMT_SETTING = /^https:\/\/(?:mobile\.|)twitter\.com\/settings(|\/.+)$/;
   const FMT_MEDIA_LEGACY = /^(https?:\/\/.+)\.(\w+)(?::(\w+)|)$/;
   const FMT_MEDIA_MODERN = /^(https?:\/\/.+)\?format=(\w+)&name=(\w+)$/;
   function getUrlOrig (url, legacy = false) {
@@ -189,6 +191,14 @@
     });
     return urls;
   }
+  function hasSensitiveWarn ($tweet) {
+    let s = false;
+    $tweet.find('a').each(function () {
+      const m = this.href.match(FMT_SETTING);
+      s ||= Boolean(m && m[1] === '/safety');
+    });
+    return s;
+  }
 
   /* ======= UI ======= */
   /* selector */
@@ -211,6 +221,13 @@
   function modifyTweet ($tweet) {
     $tweet = $tweet.parent();
     const tid = findTweetId($tweet);
+    if (hasSensitiveWarn($tweet)) {
+      const $t = $tweet.find(SEL_TWEET).first();
+      $tweet.find('div[role="button"]:not(.r-11cpok1)')
+        .on('click', function () { setTimeout(modifyTweet, 100, $t); });
+      console.info('Tweet ' + tid + ': sensitive!');
+      return;
+    }
     const nodes = [];
     findPhotoNodes($tweet).forEach(a => {
       if (a.href.match(FMT_PHOTO)[2] === tid) nodes.push(a);
