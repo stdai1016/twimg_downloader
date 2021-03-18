@@ -5,7 +5,7 @@
 // @description:zh-tw 方便下載推特圖片的小工具
 // @match        https://twitter.com/*
 // @match        https://mobile.twitter.com/*
-// @version      0.7.0
+// @version      0.7.1
 // @license      MIT
 // @require      https://code.jquery.com/jquery-3.5.1.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js
@@ -193,7 +193,7 @@
   /* ======= UI ======= */
   /* selector */
   const SEL_TWEET = 'div[data-testid="tweet"]';
-  const SEL_BTN = 'div.r-11cpok1[role="button"]:not([data-testid])';
+  const SEL_BTN = '[role="group"] [role="button"]:not([data-testid])';
   // const SEL_MENU_ = 'div[role="menu"]';
   const SEL_MENU_I = 'div[role="menuitem"]';
   const SEL_DIALOG = 'div.r-17gur6a[role="dialog"]';
@@ -267,7 +267,7 @@
 
   /* mutations */
   // <div data-testid="tweet">
-  getElementAsync('main', document.body).then(main => {
+  getElementAsync('main', document.body, 500).then(main => {
     if (window.location.href.match(FMT_TWEET)) {
       main.querySelectorAll(SEL_TWEET).forEach(tweet => {
         tweet.classList.add('exist');
