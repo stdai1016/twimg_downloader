@@ -13,6 +13,8 @@ To install the userscript, see the [twimg_downloader.user.js](./twimg_downloader
 Click *Share* button of tweet with photos, *Download Image* button for download file will be shown on menu.
 ![share menu](./share_menu.jpg)
 
+For those tweets with sensitive media, the tool will start detection after the *View* button is clicked.
+
 ## Configuration
 
 You could set file zipping and format of filename in the *Storage* tab of the script.
@@ -34,6 +36,11 @@ Available placeholders are:
 * `{tweet}` tweet id
 * `{pno}` photo number
 * `{user}` the user who post the tweet
+
+## Updates
+
+* v0.7.2 - Append sensitive media detection (fix issue 4)
+* v0.7.1 - Bug fix for button element selector
 
 ## Issues
 
