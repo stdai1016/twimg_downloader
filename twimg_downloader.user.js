@@ -5,7 +5,7 @@
 // @description:zh-tw 方便下載推特圖片的小工具
 // @match        https://twitter.com/*
 // @match        https://mobile.twitter.com/*
-// @version      0.7.1
+// @version      0.7.2a
 // @license      MIT
 // @require      https://code.jquery.com/jquery-3.5.1.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js
@@ -195,7 +195,7 @@
     let s = false;
     $tweet.find('a').each(function () {
       const m = this.href.match(FMT_SETTING);
-      s ||= Boolean(m && m[1] === '/safety');
+      s = s || Boolean(m && m[1] === '/safety');
     });
     return s;
   }
@@ -223,7 +223,7 @@
     const tid = findTweetId($tweet);
     if (hasSensitiveWarn($tweet)) {
       const $t = $tweet.find(SEL_TWEET).first();
-      $tweet.find('div[role="button"]:not(.r-11cpok1)')
+      $tweet.find('article').find('[role="button"]')
         .on('click', function () { setTimeout(modifyTweet, 100, $t); });
       console.info('Tweet ' + tid + ': sensitive!');
       return;
