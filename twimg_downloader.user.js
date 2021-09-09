@@ -5,7 +5,7 @@
 // @description:zh-tw 方便下載推特圖片的小工具
 // @match        https://twitter.com/*
 // @match        https://mobile.twitter.com/*
-// @version      0.7.2
+// @version      0.7.3
 // @license      MIT
 // @require      https://code.jquery.com/jquery-3.5.1.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js
@@ -202,7 +202,7 @@
 
   /* ======= UI ======= */
   /* selector */
-  const SEL_TWEET = 'div[data-testid="tweet"]';
+  const SEL_TWEET = '[data-testid="tweet"]';
   const SEL_BTN = '[role="group"] [role="button"]:not([data-testid])';
   // const SEL_MENU_ = 'div[role="menu"]';
   const SEL_MENU_I = 'div[role="menuitem"]';

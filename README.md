@@ -39,6 +39,7 @@ Available placeholders are:
 
 ## Updates
 
+* v0.7.3 - Bug fix for tweet element selector
 * v0.7.2 - Append sensitive media detection (fix issue 4)
 * v0.7.1 - Bug fix for button element selector
 
