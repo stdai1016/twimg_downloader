@@ -5,7 +5,7 @@
 // @description:zh-tw 方便下載推特圖片的小工具
 // @match        https://twitter.com/*
 // @match        https://mobile.twitter.com/*
-// @version      0.7.3
+// @version      0.7.4
 // @license      MIT
 // @require      https://code.jquery.com/jquery-3.5.1.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js
@@ -193,9 +193,10 @@
   }
   function hasSensitiveWarn ($tweet) {
     let s = false;
+    if ($tweet[0].querySelector(SEL_BTN_PREST)) return true;
     $tweet.find('a').each(function () {
       const m = this.href.match(FMT_SETTING);
-      s = s || Boolean(m && m[1] === '/safety');
+      s = s || Boolean(m && m[1] === '/content_you_see');
     });
     return s;
   }
@@ -204,6 +205,7 @@
   /* selector */
   const SEL_TWEET = '[data-testid="tweet"]';
   const SEL_BTN = '[role="group"] [role="button"]:not([data-testid])';
+  const SEL_BTN_PREST = '[role="presentation"] [role="button"]';
   // const SEL_MENU_ = 'div[role="menu"]';
   const SEL_MENU_I = 'div[role="menuitem"]';
   const SEL_DIALOG = 'div.r-17gur6a[role="dialog"]';
@@ -223,7 +225,7 @@
     const tid = findTweetId($tweet);
     if (hasSensitiveWarn($tweet)) {
       const $t = $tweet.find(SEL_TWEET).first();
-      $tweet.find('article').find('[role="button"]')
+      $tweet.find(SEL_BTN_PREST)
         .on('click', function () { setTimeout(modifyTweet, 100, $t); });
       console.info('Tweet ' + tid + ': sensitive!');
       return;
