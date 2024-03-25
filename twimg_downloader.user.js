@@ -5,19 +5,22 @@
 // @description:zh-tw 方便下載推特圖片的小工具
 // @match        https://twitter.com/*
 // @match        https://mobile.twitter.com/*
-// @version      0.7.4
+// @version      0.7.5a
 // @license      MIT
 // @require      https://code.jquery.com/jquery-3.5.1.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js
+// @require      https://github.com/stdai1016/userscripts/raw/main/utils/GM_fetch.user.js
 // @grant        GM_getValue
 // @grant        GM_setValue
+// @grant        GM_xmlhttpRequest
+// @connect      twimg.com
 // ==/UserScript==
 
 /** @brief A small tool for download photos easily
  */
 
 /* jshint esversion: 6 */
-/* global $, JSZip */
+/* global $, JSZip, GM_fetch */
 
 (function () {
   'use strict';
@@ -101,18 +104,13 @@
   }
   function getBlob (url, name = null) {
     name = name || url.split('/').pop();
-    return new Promise(function (resolve, reject) {
-      try {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', url);
-        xhr.responseType = 'blob';
-        xhr.onerror = function () { reject(new Error('Network error')); };
-        xhr.onload = function () {
-          if (xhr.status === 200) resolve({ blob: xhr.response, name: name });
-          else reject(new Error('Loading error:' + xhr.statusText));
-        };
-        xhr.send();
-      } catch (e) { reject(e.message); }
+    return GM_fetch(url, {
+      headers: { 'cache-control': 'no-cache', referer: location.origin }
+    }).then((r) => {
+      if (r.status !== 200) throw new Error('Loading error:' + r.statusText);
+      return r.blob();
+    }).then((blob) => {
+      return { blob, name };
     });
   }
   function downloadImages (nodes) {
