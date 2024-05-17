@@ -5,6 +5,8 @@
 // @description:zh-tw 方便下載推特圖片的小工具
 // @match        https://twitter.com/*
 // @match        https://mobile.twitter.com/*
+// @match        https://x.com/*
+// @match        https://mobile.x.com/*
 // @version      0.7.4
 // @license      MIT
 // @require      https://code.jquery.com/jquery-3.5.1.min.js
@@ -77,10 +79,10 @@
 
   /* ======= ACTION ======= */
   const FMT_TWEET =
-    /^https:\/\/(?:mobile\.|)twitter\.com\/(\w+)\/status\/(\d+)/;
+    /^https:\/\/(?:mobile\.|)(?:twitter|x)\.com\/(\w+)\/status\/(\d+)/;
   const FMT_PHOTO =
-    /^https:\/\/(?:mobile\.|)twitter\.com\/(\w+)\/status\/(\d+)\/photo\/(\d)$/;
-  const FMT_SETTING = /^https:\/\/(?:mobile\.|)twitter\.com\/settings(|\/.+)$/;
+    /^https:\/\/(?:mobile\.|)(?:twitter|x)\.com\/(\w+)\/status\/(\d+)\/photo\/(\d)$/;
+  const FMT_SETTING = /^https:\/\/(?:mobile\.|)(?:twitter|x)\.com\/settings(|\/.+)$/;
   const FMT_MEDIA_LEGACY = /^(https?:\/\/.+)\.(\w+)(?::(\w+)|)$/;
   const FMT_MEDIA_MODERN = /^(https?:\/\/.+)\?format=(\w+)&name=(\w+)$/;
   function getUrlOrig (url, legacy = false) {
