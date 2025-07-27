@@ -103,18 +103,8 @@
   }
   function getBlob (url, name = null) {
     name = name || url.split('/').pop();
-    return new Promise(function (resolve, reject) {
-      try {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', url);
-        xhr.responseType = 'blob';
-        xhr.onerror = function () { reject(new Error('Network error')); };
-        xhr.onload = function () {
-          if (xhr.status === 200) resolve({ blob: xhr.response, name: name });
-          else reject(new Error('Loading error:' + xhr.statusText));
-        };
-        xhr.send();
-      } catch (e) { reject(e.message); }
+    return fetch(url).then(r => r.blob()).then(blob => {
+      return { blob, name };
     });
   }
   function downloadImages (nodes) {
@@ -288,7 +278,7 @@
 
   /* mutations */
   // <div data-testid="tweet">
-  getElementAsync('main', document.body, 500).then(main => {
+  getElementAsync('main', document.body, 1000).then(main => {
     if (window.location.href.match(FMT_TWEET)) {
       main.querySelectorAll(SEL_TWEET).forEach(tweet => {
         tweet.classList.add('exist');
@@ -304,7 +294,7 @@
     })))).observe(main, { childList: true, subtree: true });
   });
   // <div role="dialog">
-  getElementAsync('#layers', document.body, 500).then(layers => {
+  getElementAsync('#layers', document.body, 1000).then(layers => {
     if (window.location.href.match(FMT_PHOTO)) {
       modifyDialog($(layers.querySelector(SEL_DIALOG)));
     }
