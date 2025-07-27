@@ -9,8 +9,8 @@
 // @match        https://mobile.x.com/*
 // @version      0.7.6
 // @license      MIT
-// @require      https://code.jquery.com/jquery-3.5.1.min.js
-// @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js
+// @require      https://code.jquery.com/jquery-3.7.1.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js
 // @grant        GM_getValue
 // @grant        GM_setValue
 // ==/UserScript==
