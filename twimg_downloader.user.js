@@ -3,6 +3,7 @@
 // @name:zh-TW   twimg Downloader
 // @description  A small tool for download photos easily
 // @description:zh-tw 方便下載推特圖片的小工具
+// @icon         https://icons.duckduckgo.com/ip2/x.com.ico
 // @match        https://twitter.com/*
 // @match        https://mobile.twitter.com/*
 // @match        https://x.com/*
@@ -44,6 +45,8 @@
     return GM_getValue(key);
   }
   function fmtPhotoName (val = null) { return valueGetSet('fmt_p', val); }
+  function fmtVideoName (val = null) { return valueGetSet('fmt_v', val); }
+  function fmtGifName (val = null) { return valueGetSet('fmt_g', val); }
   function fmtZipName (val = null) { return valueGetSet('fmt_z', val); }
   function zipped (val = null) { return valueGetSet('zip', val); }
 
@@ -82,6 +85,8 @@
     /^https:\/\/(?:mobile\.|)(?:twitter|x)\.com\/(\w+)\/status\/(\d+)/;
   const FMT_PHOTO =
     /^https:\/\/(?:mobile\.|)(?:twitter|x)\.com\/(\w+)\/status\/(\d+)\/photo\/(\d)$/;
+  const FMT_VIDEO =
+    /^https:\/\/(?:mobile\.|)(?:twitter|x)\.com\/(\w+)\/status\/(\d+)\/video\/(\d)$/;
   const FMT_SETTING = /^https:\/\/(?:mobile\.|)(?:twitter|x)\.com\/settings(|\/.+)$/;
   const FMT_MEDIA_LEGACY = /^(https?:\/\/.+)\.(\w+)(?::(\w+)|)$/;
   const FMT_MEDIA_MODERN = /^(https?:\/\/.+)\?format=(\w+)&name=(\w+)$/;
@@ -108,7 +113,7 @@
     });
   }
   function downloadImages (nodes) {
-    const promises = [];
+    const anchors = [];
     const id = nodes[0].href.match(FMT_TWEET)[2];
     const user = nodes[0].href.match(FMT_TWEET)[1];
     nodes.forEach(a => {
@@ -117,8 +122,14 @@
       let n = getFileName(fmtPhotoName(),
         { base: getBasename(url), tweet: m[2], user: m[1], pno: m[3] });
       n += getExtension(url);
-      promises.push(getBlob(url, n));
+      anchors.push({ href: url, download: n });
     });
+    anchors.length && downloadAnchors(anchors, { id, user });
+  }
+  function downloadAnchors (anchors, data = {}) {
+    const { id = 'unknown', user = 'unknown' } = data;
+    const promises = [];
+    anchors.forEach(a => promises.push(getBlob(a.href, a.download)));
     if (promises.length > 1 && zipped()) {
       Promise.all(promises).then(function (res) {
         console.debug('Making zip file...');
@@ -128,7 +139,7 @@
           const a = document.createElement('a');
           a.href = URL.createObjectURL(blob);
           a.download = getFileName(fmtZipName(),
-            { base: id, tweet: id, user: user, pno: 0 });
+            { base: id, tweet: id, user, pno: 0 });
           a.click();
           setTimeout(function () { URL.revokeObjectURL(a.href); }, 6e4);
         });
@@ -192,6 +203,67 @@
     });
     return s;
   }
+  function getMedia ($tweet) {
+    const article = $tweet[0].querySelector('article') || $tweet[0];
+    const fiber = Object.keys(article).find(k => k.startsWith('__reactFiber$'));
+    let data = article[fiber];
+    while (data && !data.pendingProps?.tweet) {
+      data = data.return;
+    }
+    const tweet = data?.pendingProps?.tweet || null;
+    return tweet?.extended_entities?.media || tweet?.entities?.media || null;
+  }
+  function downloadMedia (mediaList) {
+    const anchors = [];
+    const url = mediaList[0].expanded_url.startsWith('http')
+      ? mediaList[0].expanded_url
+      : `https://x.com${mediaList[0].expanded_url}`;
+    const id = url.match(FMT_TWEET)[2];
+    const user = url.match(FMT_TWEET)[1];
+    mediaList.forEach((media, i) => {
+      console.debug(media);
+      switch (media.type) {
+        case 'photo': {
+          const href = getUrlOrig(media.media_url_https, true);
+          const m = media.expanded_url.startsWith('http')
+            ? media.expanded_url.match(FMT_PHOTO)
+            : `https://x.com${media.expanded_url}`.match(FMT_PHOTO);
+          const download = getFileName(fmtPhotoName(), {
+            base: getBasename(href), tweet: m[2], user: m[1], pno: m[3]
+          }) + getExtension(href);
+          anchors.push({ href, download });
+          break;
+        }
+        case 'video': {
+          const href = media.video_info.variants.reduce((a, b) => {
+            return (a.bitrate || 0) > (b.bitrate || 0) ? a : b;
+          }).url;
+          const m = media.expanded_url.startsWith('http')
+            ? media.expanded_url.match(FMT_VIDEO)
+            : `https://x.com${media.expanded_url}`.match(FMT_VIDEO);
+          const download = getFileName(fmtVideoName(), {
+            base: getBasename(href), tweet: m[2], user: m[1], pno: m[3]
+          }) + getExtension(href);
+          anchors.push({ href, download });
+          break;
+        }
+        case 'animated_gif': {
+          const href = media.video_info.variants.reduce((a, b) => {
+            return (a.bitrate || 0) > (b.bitrate || 0) ? a : b;
+          }).url;
+          const m = media.expanded_url.startsWith('http')
+            ? media.expanded_url.match(FMT_PHOTO)
+            : `https://x.com${media.expanded_url}`.match(FMT_PHOTO);
+          const download = getFileName(fmtGifName(), {
+            base: getBasename(href), tweet: m[2], user: m[1], pno: m[3]
+          }) + getExtension(href);
+          anchors.push({ href, download });
+          break;
+        }
+      }
+    });
+    anchors.length && downloadAnchors(anchors, { id, user });
+  }
 
   /* ======= UI ======= */
   /* selector */
@@ -226,8 +298,20 @@
     findPhotoNodes($tweet).forEach(a => {
       if (a.href.match(FMT_PHOTO)[2] === tid) nodes.push(a);
     });
-    console.info('Tweet ' + tid + ': ' + nodes.length);
-    if (nodes.length) {
+    const media = getMedia($tweet);
+    if (media) {
+      console.info(`Tweet ${tid}: ${media.length}`);
+      const $btnShare = $tweet.find(SEL_BTN);
+      $btnShare.on('click', function () {
+        const $menuitem = $(MENU_I_DL.replace('Download Image', 'Download Media'))
+          .on('click', e => {
+            e.preventDefault();
+            downloadMedia(media);
+          });
+        insertMenuitem($menuitem);
+      });
+    } else if (nodes.length) {
+      console.info('Tweet ' + tid + ': ' + nodes.length);
       const $btnShare = $tweet.find(SEL_BTN);
       $btnShare.on('click', function () {
         const $menuitem = $(MENU_I_DL).on('click', e => {
@@ -236,6 +320,8 @@
         });
         insertMenuitem($menuitem);
       });
+    } else {
+      console.info(`Tweet ${tid}: 0`);
     }
   }
 
