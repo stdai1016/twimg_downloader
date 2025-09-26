@@ -243,7 +243,7 @@
             : `https://x.com${media.expanded_url}`.match(FMT_VIDEO);
           const download = getFileName(fmtVideoName(), {
             base: getBasename(href), tweet: m[2], user: m[1], pno: m[3]
-          }) + getExtension(href);
+          }) + '.mp4';
           anchors.push({ href, download });
           break;
         }
@@ -256,7 +256,7 @@
             : `https://x.com${media.expanded_url}`.match(FMT_PHOTO);
           const download = getFileName(fmtGifName(), {
             base: getBasename(href), tweet: m[2], user: m[1], pno: m[3]
-          }) + getExtension(href);
+          }) + '.mp4';
           anchors.push({ href, download });
           break;
         }
