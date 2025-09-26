@@ -13,6 +13,8 @@
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js
 // @grant        GM_getValue
 // @grant        GM_setValue
+// @grant        GM_info
+// @grant        unsafeWindow
 // ==/UserScript==
 
 /** @brief A small tool for download photos easily
@@ -23,6 +25,10 @@
 
 (function () {
   'use strict';
+
+  const firefox = GM_info.userAgentData.brands.find(
+    (b) => b.brand === 'Firefox'
+  );
 
   /* ======= STORAGE ======= */
   const DEFAULT_VALUE = {
@@ -45,7 +51,9 @@
   }
   function fmtPhotoName (val = null) { return valueGetSet('fmt_p', val); }
   function fmtZipName (val = null) { return valueGetSet('fmt_z', val); }
-  function zipped (val = null) { return valueGetSet('zip', val); }
+  function zipped (val = null) {
+    return !firefox && valueGetSet('zip', val);
+  }
 
   /** Get/set format of filename, available format names:
    *  * {base} (basename of url)
@@ -101,11 +109,11 @@
     const m = url.match(FMT_MEDIA_MODERN) || url.match(FMT_MEDIA_LEGACY);
     return m ? '.' + m[2] : '';
   }
-  function getBlob (url, name = null) {
+  async function getBlob(url, name = null) {
     name = name || url.split('/').pop();
-    return fetch(url).then(r => r.blob()).then(blob => {
-      return { blob, name };
-    });
+    const res = await (firefox ? unsafeWindow : window).fetch(url);
+    const blob = await res.blob();
+    return { blob, name };
   }
   function downloadImages (nodes) {
     const promises = [];
