@@ -222,7 +222,8 @@
     return tweet?.extended_entities?.media || tweet?.entities?.media || null;
   }
   function getMediaItems ($dialog) {
-    const item = $dialog[0].querySelector('li[role="listitem"]') ?? {};
+    const item =
+      $dialog[0].querySelector('[data-testid="swipe-to-dismiss"]') ?? {};
     const fiber = Object.keys(item).find(k => k.startsWith('__reactFiber$'));
     let data = item[fiber];
     while (data && !data.pendingProps?.mediaItems) {
@@ -239,7 +240,6 @@
     const id = url.match(FMT_TWEET)[2];
     const user = url.match(FMT_TWEET)[1];
     mediaList.forEach((media, i) => {
-      console.debug(media);
       switch (media.type) {
         case 'photo': {
           const href = getUrlOrig(media.media_url_https, true);
@@ -362,9 +362,10 @@
           return im[2] === m[2] && im[3] === m[3];
         });
       } else {
-        const item = $dialog.find('li[role="listitem"]').filter((i, item) => {
-          return !item.querySelector('img[alt=placeholder]');
-        })[parseInt(m[3]) - 1];
+        const item = $dialog.find('[data-testid="swipe-to-dismiss"]')
+          .filter((i, item) => {
+            return !item.querySelector('img[alt=placeholder]');
+          })[parseInt(m[3]) - 1];
         const url = (item || $dialog[0])
           .querySelector('div[style^=background-image]')
           // eslint-disable-next-line no-useless-escape
