@@ -8,12 +8,14 @@
 // @match        https://mobile.twitter.com/*
 // @match        https://x.com/*
 // @match        https://mobile.x.com/*
-// @version      0.7.6
+// @version      0.7.9
 // @license      MIT
-// @require      https://code.jquery.com/jquery-3.5.1.min.js
+// @require      https://code.jquery.com/jquery-3.7.1.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js
 // @grant        GM_getValue
 // @grant        GM_setValue
+// @grant        GM_info
+// @grant        unsafeWindow
 // ==/UserScript==
 
 /** @brief A small tool for download photos easily
@@ -24,6 +26,10 @@
 
 (function () {
   'use strict';
+
+  const firefox = GM_info.userAgentData.brands.find(
+    (b) => b.brand === 'Firefox'
+  );
 
   /* ======= STORAGE ======= */
   const DEFAULT_VALUE = {
@@ -48,7 +54,9 @@
   function fmtVideoName (val = null) { return valueGetSet('fmt_v', val); }
   function fmtGifName (val = null) { return valueGetSet('fmt_g', val); }
   function fmtZipName (val = null) { return valueGetSet('fmt_z', val); }
-  function zipped (val = null) { return valueGetSet('zip', val); }
+  function zipped (val = null) {
+    return !firefox && valueGetSet('zip', val);
+  }
 
   /** Get/set format of filename, available format names:
    *  * {base} (basename of url)
@@ -106,11 +114,11 @@
     const m = url.match(FMT_MEDIA_MODERN) || url.match(FMT_MEDIA_LEGACY);
     return m ? '.' + m[2] : '';
   }
-  function getBlob (url, name = null) {
+  async function getBlob (url, name = null) {
     name = name || url.split('/').pop();
-    return fetch(url).then(r => r.blob()).then(blob => {
-      return { blob, name };
-    });
+    const res = await (firefox ? unsafeWindow : window).fetch(url);
+    const blob = await res.blob();
+    return { blob, name };
   }
   function downloadImages (nodes) {
     const anchors = [];
@@ -332,7 +340,9 @@
     $btnShare.on('click', function () {
       const m = window.location.href.match(FMT_PHOTO);
       console.info(`Tweet ${m[2]}-${m[3]}`);
-      const item = $dialog.find('li[role="listitem"]')[parseInt(m[3]) - 1];
+      const item = $dialog.find('li[role="listitem"]').filter((i, item) => {
+        return !item.querySelector('img[alt=placeholder]');
+      })[parseInt(m[3]) - 1];
       const url = (item || $dialog[0])
         .querySelector('div[style^=background-image]')
         // eslint-disable-next-line no-useless-escape
