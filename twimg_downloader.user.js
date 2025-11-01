@@ -126,7 +126,7 @@
     const user = nodes[0].href.match(FMT_TWEET)[1];
     nodes.forEach(a => {
       const url = findPhotoUrl($(a))[0];
-      const m = a.href.match(FMT_PHOTO);
+      const m = a.href.match(FMT_PHOTO) || a.href.match(FMT_VIDEO);
       let n = getFileName(fmtPhotoName(),
         { base: getBasename(url), tweet: m[2], user: m[1], pno: m[3] });
       n += getExtension(url);
@@ -220,6 +220,16 @@
     }
     const tweet = data?.pendingProps?.tweet || null;
     return tweet?.extended_entities?.media || tweet?.entities?.media || null;
+  }
+  function getMediaItems ($dialog) {
+    const item = $dialog[0].querySelector('li[role="listitem"]') ?? {};
+    const fiber = Object.keys(item).find(k => k.startsWith('__reactFiber$'));
+    let data = item[fiber];
+    while (data && !data.pendingProps?.mediaItems) {
+      data = data.return;
+    }
+    const items = data?.pendingProps?.mediaItems || [];
+    return items.filter(item => item.expanded_url);
   }
   function downloadMedia (mediaList) {
     const anchors = [];
@@ -338,22 +348,42 @@
     const $btnShare = $dialog.find(SEL_BTN);
     if (!$btnShare.length) { setTimeout(modifyDialog, 72, $dialog); return; }
     $btnShare.on('click', function () {
-      const m = window.location.href.match(FMT_PHOTO);
+      const m = window.location.href.match(FMT_PHOTO) ??
+        window.location.href.match(FMT_VIDEO);
       console.info(`Tweet ${m[2]}-${m[3]}`);
-      const item = $dialog.find('li[role="listitem"]').filter((i, item) => {
-        return !item.querySelector('img[alt=placeholder]');
-      })[parseInt(m[3]) - 1];
-      const url = (item || $dialog[0])
-        .querySelector('div[style^=background-image]')
-        // eslint-disable-next-line no-useless-escape
-        .style.backgroundImage.match(/url\(\"(.+)\"\)/)[1];
-      const img = $(`<img src="${url}">`);
-      const a = $(`<a href="${window.location.href}"></a>`).append(img)[0];
-      const $menuitem = $(MENU_I_DL).on('click', e => {
-        e.preventDefault();
-        downloadImages([a]);
-      });
-      insertMenuitem($menuitem);
+      const nodes = [];
+      let items = getMediaItems($dialog);
+      if (items.length) {
+        items = items.filter(item => {
+          const url = item.expanded_url.startsWith('http')
+            ? item.expanded_url
+            : location.origin + item.expanded_url;
+          const im = url.match(FMT_PHOTO) ?? url.match(FMT_VIDEO);
+          return im[2] === m[2] && im[3] === m[3];
+        });
+      } else {
+        const item = $dialog.find('li[role="listitem"]').filter((i, item) => {
+          return !item.querySelector('img[alt=placeholder]');
+        })[parseInt(m[3]) - 1];
+        const url = (item || $dialog[0])
+          .querySelector('div[style^=background-image]')
+          // eslint-disable-next-line no-useless-escape
+          .style.backgroundImage.match(/url\(\"(.+)\"\)/)[1];
+        const img = $(`<img src="${url}">`);
+        const a = $(`<a href="${window.location.href}"></a>`).append(img)[0];
+        nodes.push(a);
+      }
+      if (items.length || nodes.length) {
+        const $menuitem = $(
+          items.length
+            ? MENU_I_DL.replace('Download Image', 'Download Media')
+            : MENU_I_DL
+        ).on('click', e => {
+          e.preventDefault();
+          items.length ? downloadMedia(items) : downloadImages(nodes);
+        });
+        insertMenuitem($menuitem);
+      }
     });
   }
 
