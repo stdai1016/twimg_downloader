@@ -254,8 +254,8 @@
     $btnShare.on('click', function () {
       const m = window.location.href.match(FMT_PHOTO);
       console.info(`Tweet ${m[2]}-${m[3]}`);
-      const item = $dialog.find('li[role="listitem"]').filter(() => {
-        return $(this).find('img[alt=placeholder]').length === 0;
+      const item = $dialog.find('li[role="listitem"]').filter((i, item) => {
+        return !item.querySelector('img[alt=placeholder]');
       })[parseInt(m[3]) - 1];
       const url = (item || $dialog[0])
         .querySelector('div[style^=background-image]')
