@@ -7,7 +7,7 @@
 // @match        https://mobile.twitter.com/*
 // @match        https://x.com/*
 // @match        https://mobile.x.com/*
-// @version      0.7.7
+// @version      0.7.8
 // @license      MIT
 // @require      https://code.jquery.com/jquery-3.7.1.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js
@@ -109,7 +109,7 @@
     const m = url.match(FMT_MEDIA_MODERN) || url.match(FMT_MEDIA_LEGACY);
     return m ? '.' + m[2] : '';
   }
-  async function getBlob(url, name = null) {
+  async function getBlob (url, name = null) {
     name = name || url.split('/').pop();
     const res = await (firefox ? unsafeWindow : window).fetch(url);
     const blob = await res.blob();
@@ -136,7 +136,7 @@
           const a = document.createElement('a');
           a.href = URL.createObjectURL(blob);
           a.download = getFileName(fmtZipName(),
-            { base: id, tweet: id, user: user, pno: 0 });
+            { base: id, tweet: id, user, pno: 0 });
           a.click();
           setTimeout(function () { URL.revokeObjectURL(a.href); }, 6e4);
         });
@@ -254,7 +254,9 @@
     $btnShare.on('click', function () {
       const m = window.location.href.match(FMT_PHOTO);
       console.info(`Tweet ${m[2]}-${m[3]}`);
-      const item = $dialog.find('li[role="listitem"]')[parseInt(m[3]) - 1];
+      const item = $dialog.find('li[role="listitem"]').filter(() => {
+        return $(this).find('img[alt=placeholder]').length === 0;
+      })[parseInt(m[3]) - 1];
       const url = (item || $dialog[0])
         .querySelector('div[style^=background-image]')
         // eslint-disable-next-line no-useless-escape
